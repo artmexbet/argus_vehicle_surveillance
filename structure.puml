@@ -1,0 +1,52 @@
+@startuml
+!define RECTANGLE class
+
+RECTANGLE IP_Camera {
+}
+
+RECTANGLE YOLO {
+}
+
+RECTANGLE NATS {
+}
+
+RECTANGLE Management_Service {
+}
+
+RECTANGLE PostgreSQL {
+}
+
+RECTANGLE Notification_Service {
+}
+
+RECTANGLE Firebase {
+}
+
+RECTANGLE WebSocket_Service {
+}
+
+RECTANGLE CentrifuGo {
+}
+
+RECTANGLE Client {
+}
+
+RECTANGLE HTTPGateway {
+}
+
+IP_Camera --> YOLO : Video Stream
+YOLO --> NATS : Detected Objects
+NATS --> Management_Service : Car Events
+Management_Service --> PostgreSQL : Update Car State
+Management_Service --> NATS : Notification Events
+NATS --> Notification_Service : Notification Events
+Notification_Service --> Firebase : Send Notifications
+Management_Service --> WebSocket_Service : Car State Updates
+WebSocket_Service --> CentrifuGo : Real-time Updates
+CentrifuGo --> Client : Real-time Updates
+Firebase --> Client : Notifications
+IP_Camera --> Client : Video Stream
+Client --> HTTPGateway : REST API
+HTTPGateway --> Management_Service : REST API
+
+@enduml
