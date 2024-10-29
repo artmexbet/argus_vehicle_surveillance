@@ -47,6 +47,7 @@ CentrifuGo --> Client : Real-time Updates
 Firebase --> Client : Notifications
 IP_Camera --> Client : Video Stream
 Client --> HTTPGateway : REST API
-HTTPGateway --> Management_Service : REST API
+HTTPGateway --> NATS : REST API
+NATS --> Management_Service : REST API
 
 @enduml
