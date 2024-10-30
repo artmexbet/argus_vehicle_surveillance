@@ -1,0 +1,51 @@
+services:
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: testtask
+      POSTGRES_USER: baseuser
+      POSTGRES_PASSWORD: basepassword
+    ports:
+      - "5434:5432"  # Проксирую на другой порт, чтобы не конфликтовал с локальным сервером
+    volumes:
+      - ./db_data:/var/lib/postgresql/data
+      - ./db_init:/docker-entrypoint-initdb.d
+    networks:
+      - net
+
+#  gateway:
+#    build:
+#      dockerfile: services/gateway/Dockerfile
+#      context: .
+#    ports:
+#      - "8080:8080"
+#    depends_on:
+#      - broker
+#    networks:
+#      - net
+
+  broker:
+    image: nats
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+      - "6222:6222"
+    networks:
+      - net
+
+  centrifugo:
+    container_name: centrifugo
+    image: centrifugo/centrifugo:v5
+    volumes:
+      - ./deploy/centrifugo-config.json:/centrifugo/config.json
+    command: centrifugo -c config.json
+    ports:
+      - 8000:8000
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+
+networks:
+  net:
+    driver: bridge

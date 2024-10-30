@@ -14,5 +14,8 @@ type Router struct {
 
 func New(cfg *Config) *Router {
 	app := fiber.New(fiber.Config{})
-	return &Router{cfg: cfg, app: app}
+	router := &Router{cfg: cfg, app: app}
+
+	router.app.Get("/camera/list", router.CameraList())
+	return router
 }
