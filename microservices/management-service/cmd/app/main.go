@@ -26,10 +26,11 @@ func main() {
 		log.Fatal(err)
 	}
 
-	_, err = natsConnector.New(cfg.NatsConfig)
+	broker, err := natsConnector.New(cfg.NatsConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer broker.Close()
 
 	conn, err := postgresConnector.New(cfg.DbConfig)
 	if err != nil {

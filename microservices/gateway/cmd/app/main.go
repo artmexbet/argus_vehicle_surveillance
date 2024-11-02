@@ -1,13 +1,15 @@
 package main
 
 import (
+	"Argus/microservices/gateway/internal/router"
 	natsconnector "Argus/pkg/nats-connector"
 	"github.com/ilyakaznacheev/cleanenv"
 	"log"
 )
 
 type Config struct {
-	NatsConfig *natsconnector.Config `yaml:"nats" env-prefix:"NATS_"`
+	NatsConfig   *natsconnector.Config `yaml:"nats" env-prefix:"NATS_"`
+	RouterConfig *router.Config        `yaml:"router" env-prefix:"ROUTER_"`
 }
 
 func readConfig(filename string) (*Config, error) {
@@ -24,9 +26,12 @@ func main() {
 		log.Fatal(err)
 	}
 
-	_, err = natsconnector.New(cfg.NatsConfig)
+	broker, err := natsconnector.New(cfg.NatsConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer broker.Close()
 
+	r := router.New(cfg.RouterConfig)
+	log.Fatal(r.Run())
 }

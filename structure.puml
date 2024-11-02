@@ -35,7 +35,7 @@ RECTANGLE HTTPGateway {
 }
 
 IP_Camera --> YOLO : Video Stream
-YOLO --> NATS : Detected Objects
+YOLO --> NATS : JSON with boxes and car info
 NATS --> Management_Service : Car Events
 Management_Service --> PostgreSQL : Update Car State
 Management_Service --> NATS : Notification Events
@@ -49,5 +49,6 @@ IP_Camera --> Client : Video Stream
 Client --> HTTPGateway : REST API
 HTTPGateway --> NATS : REST API
 NATS --> Management_Service : REST API
+YOLO --> WebSocket_Service : Send boxes to frontend
 
 @enduml

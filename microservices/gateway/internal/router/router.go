@@ -1,6 +1,10 @@
 package router
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"fmt"
+	"github.com/go-playground/validator/v10"
+	"github.com/gofiber/fiber/v2"
+)
 
 type Config struct {
 	Host string `yaml:"host" env-prefix:"HOST" env-default:"localhost"`
@@ -8,14 +12,23 @@ type Config struct {
 }
 
 type Router struct {
-	cfg *Config
-	app *fiber.App
+	cfg       *Config
+	app       *fiber.App
+	validator *validator.Validate
 }
 
 func New(cfg *Config) *Router {
 	app := fiber.New(fiber.Config{})
-	router := &Router{cfg: cfg, app: app}
+	router := &Router{
+		cfg:       cfg,
+		app:       app,
+		validator: validator.New(),
+	}
 
 	router.app.Get("/camera/list", router.CameraList())
 	return router
+}
+
+func (r *Router) Run() error {
+	return r.app.Listen(fmt.Sprintf("%s:%s", r.cfg.Host, r.cfg.Port))
 }

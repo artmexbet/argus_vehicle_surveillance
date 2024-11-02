@@ -29,3 +29,7 @@ func (n *Nats) CreateReader(subject string, handler nats.MsgHandler) (*nats.Subs
 func (n *Nats) Connection() *nats.Conn {
 	return n.conn
 }
+
+func (n *Nats) Close() {
+	n.conn.Close()
+}
