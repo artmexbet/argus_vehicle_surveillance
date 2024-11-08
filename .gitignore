@@ -1,2 +1,5 @@
 db_data
 */config.json
+YOLO/.venv/
+YOLO/.vscode
+YOLO/__pycache__
