@@ -35,6 +35,7 @@ ALTER SCHEMA public OWNER TO pg_database_owner;
 --
 
 COMMENT ON SCHEMA public IS 'standard public schema';
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 
 --

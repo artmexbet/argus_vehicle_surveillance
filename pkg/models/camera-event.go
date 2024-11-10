@@ -11,3 +11,7 @@ type CameraEvent struct {
 	Timestamp string            `json:"timestamp"`
 	EventType string            `json:"event_type"`
 }
+
+type CarInfo struct {
+	ID CarIDType `json:"id"`
+}

@@ -1,18 +1,20 @@
 package main
 
 import (
-	centrifugo_connector "Argus/microservices/management-service/internal/centrifugo-connector"
+	carProcessor "Argus/microservices/management-service/internal/car-processor"
+	centrifugoConnector "Argus/microservices/management-service/internal/centrifugo-connector"
+	"Argus/microservices/management-service/internal/handler"
 	postgresConnector "Argus/microservices/management-service/internal/postgres-connector"
-	"Argus/microservices/management-service/internal/service"
 	natsConnector "Argus/pkg/nats-connector"
 	"github.com/ilyakaznacheev/cleanenv"
 	"log"
 )
 
 type Config struct {
-	NatsConfig       *natsConnector.Config        `yaml:"nats" env-prefix:"NATS_"`
-	DbConfig         *postgresConnector.Config    `yaml:"db" env-prefix:"DB_"`
-	CentrifugoConfig *centrifugo_connector.Config `yaml:"centrifugo" env-prefix:"CENTRIFUGO_"`
+	NatsConfig         *natsConnector.Config       `yaml:"nats" env-prefix:"NATS_"`
+	DbConfig           *postgresConnector.Config   `yaml:"db" env-prefix:"DB_"`
+	CentrifugoConfig   *centrifugoConnector.Config `yaml:"centrifugo" env-prefix:"CENTRIFUGO_"`
+	CarProcessorConfig *carProcessor.Config        `yaml:"car-processor" env-prefix:"CAR_PROCESSOR_"`
 }
 
 func readConfig(filename string) (*Config, error) {
@@ -35,16 +37,18 @@ func main() {
 	}
 	defer broker.Close()
 
-	conn, err := postgresConnector.New(cfg.DbConfig)
+	db, err := postgresConnector.New(cfg.DbConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer conn.Close()
+	defer db.Close()
 
-	ws, err := centrifugo_connector.New(cfg.CentrifugoConfig)
+	ws, err := centrifugoConnector.New(cfg.CentrifugoConfig)
 	defer ws.Close()
 
-	svc := service.New(broker, ws)
+	cp := carProcessor.New(cfg.CarProcessorConfig)
+
+	svc := handler.New(broker, ws, db, cp)
 	err = svc.Init()
 	if err != nil {
 		log.Fatal(err)

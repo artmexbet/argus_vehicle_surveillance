@@ -9,7 +9,7 @@ services:
       - "5434:5432"  # Проксирую на другой порт, чтобы не конфликтовал с локальным сервером
     volumes:
       - ./db_data:/var/lib/postgresql/data
-      - ./microservices/management-service/internal/db:/docker-entrypoint-initdb.d
+      - ./microservices/management-handler/internal/db:/docker-entrypoint-initdb.d
     networks:
       - net
 
