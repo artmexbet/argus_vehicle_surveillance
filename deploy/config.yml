@@ -1,0 +1,18 @@
+nats:
+  host: broker
+  port: 4222
+db:
+  host: db
+  port: 5432
+  user: baseuser
+  password: basepassword
+  dbname: argus
+centrifugo:
+  host: centrifugo
+  port: 8000
+car-processor:
+  info_count: 500
+  movement_check_delay: 5
+router:
+    host: 0.0.0.0
+    port: 8080

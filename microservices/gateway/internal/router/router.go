@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"github.com/nats-io/nats.go"
 )
 
-type IService interface {
+type IBroker interface {
+	CreateReader(string, nats.MsgHandler) (*nats.Subscription, error)
 }
 
 type Config struct {
@@ -18,16 +20,16 @@ type Router struct {
 	cfg       *Config
 	app       *fiber.App
 	validator *validator.Validate
-	service   IService
+	broker    IBroker
 }
 
-func New(cfg *Config, service IService) *Router {
+func New(cfg *Config, broker IBroker) *Router {
 	app := fiber.New(fiber.Config{})
 	router := &Router{
 		cfg:       cfg,
 		app:       app,
 		validator: validator.New(),
-		service:   service,
+		broker:    broker,
 	}
 
 	router.app.Get("/camera/list", router.CameraList())

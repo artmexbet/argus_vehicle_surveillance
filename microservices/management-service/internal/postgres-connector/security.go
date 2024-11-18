@@ -25,3 +25,11 @@ func (p *PostgresConnector) GetAllSecuriedCarsByCamera(cameraID models.CameraIDT
 
 	return securityCars, nil
 }
+
+func (p *PostgresConnector) SetCarToSecurity(carID models.CarIDType, cameraID models.CameraIDType, accountID models.AccountIDType) (models.SecurityCarIDType, error) {
+	var securityCarID models.SecurityCarIDType
+	err := p.conn.QueryRow(context.Background(),
+		`INSERT INTO security_cars (car_id, camera_id, account_id) 
+					VALUES ($1, $2, $3) RETURNING id`, carID, cameraID, accountID).Scan(&securityCarID)
+	return securityCarID, err
+}

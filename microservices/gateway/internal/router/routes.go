@@ -13,17 +13,15 @@ func (r *Router) CameraList() fiber.Handler {
 
 func (r *Router) AlarmOn() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
-		type Request struct {
-			CameraID  models.CameraIDType  `json:"camera_id" validate:"required"`
-			AccountID models.AccountIDType `json:"account_id" validate:"required"`
-			CarID     models.CarIDType     `json:"car_id" validate:"required"`
-			Time      string               `json:"time" validate:"required,datetime"`
-		}
-
-		req := new(Request)
+		req := new(models.AlarmOnRequest)
 		if err := ctx.BodyParser(req); err != nil {
 			return ctx.SendStatus(400)
 		}
+
+		if err := r.validator.Struct(req); err != nil {
+			return ctx.SendStatus(400)
+		}
+
 		return ctx.JSON(map[string]interface{}{"foo": "bar"})
 	}
 }

@@ -1,0 +1,6 @@
+{
+  "video_path": "rtsp://admin:Video2023@109.195.69.236:3393/cam/realmonitor?channel=1&subtype=0",
+  "model_path": "YOLO/yolo11l.pt",
+  "nats_url": "nats://broker:4222",
+  "show_video": false
+}

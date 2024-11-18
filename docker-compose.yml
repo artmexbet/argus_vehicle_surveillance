@@ -10,19 +10,38 @@ services:
     volumes:
       - ./db_data:/var/lib/postgresql/data
       - ./microservices/management-handler/internal/db:/docker-entrypoint-initdb.d
+    restart: unless-stopped
     networks:
       - net
 
-#  gateway:
-#    build:
-#      dockerfile: services/gateway/Dockerfile
-#      context: .
-#    ports:
-#      - "8080:8080"
-#    depends_on:
-#      - broker
-#    networks:
-#      - net
+  gateway:
+    build:
+      dockerfile: deploy/golang/Dockerfile
+      context: .
+      args:
+        - BUILD_IMAGE=go-build
+        - SERVICE_NAME=gateway
+    ports:
+      - "8080:8080"
+    depends_on:
+      - broker
+      - management-service
+    networks:
+      - net
+
+  management-service:
+    build:
+      dockerfile: deploy/golang/Dockerfile
+      context: .
+      args:
+        - BUILD_IMAGE=go-build
+        - SERVICE_NAME=management-service
+    depends_on:
+      - db
+      - broker
+      - centrifugo
+    networks:
+      - net
 
   broker:
     image: nats
@@ -40,11 +59,31 @@ services:
       - ./deploy/centrifugo-config.json:/centrifugo/config.json
     command: centrifugo -c config.json
     ports:
-      - 8000:8000
+      - "8000:8000"
     ulimits:
       nofile:
         soft: 65535
         hard: 65535
+
+  yolo:
+    build:
+      dockerfile: Dockerfile
+      context: ./YOLO
+    depends_on:
+      - db
+      - broker
+      - management-service
+    environment:
+      - cfg=deploy_config.json
+    networks:
+      - net
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
 
 networks:
   net:

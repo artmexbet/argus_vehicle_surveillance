@@ -6,7 +6,7 @@ import (
 	"github.com/nats-io/nats.go"
 )
 
-var CameraID models.CameraIDType = models.CameraIDType(uuid.UUID{})
+var CameraID = models.CameraIDType(uuid.UUID{})
 
 type IBroker interface {
 	CreateReader(string, nats.MsgHandler) (*nats.Subscription, error)
@@ -18,6 +18,7 @@ type IWebSocket interface {
 
 type IDatabase interface {
 	GetAllSecuriedCarsByCamera(models.CameraIDType) ([]models.SecurityCar, error)
+	SetCarToSecurity(models.CarIDType, models.CameraIDType, models.AccountIDType) (models.SecurityCarIDType, error)
 }
 
 type ICarProcessor interface {
@@ -25,15 +26,15 @@ type ICarProcessor interface {
 	GetCarInfos(models.SecurityCarIDType) []models.CarInfo
 }
 
-type Service struct {
+type Handler struct {
 	broker       IBroker
 	ws           IWebSocket
 	db           IDatabase
 	carProcessor ICarProcessor
 }
 
-func New(broker IBroker, ws IWebSocket, db IDatabase, carProcessor ICarProcessor) *Service {
-	return &Service{
+func New(broker IBroker, ws IWebSocket, db IDatabase, carProcessor ICarProcessor) *Handler {
+	return &Handler{
 		broker:       broker,
 		ws:           ws,
 		db:           db,
@@ -41,8 +42,12 @@ func New(broker IBroker, ws IWebSocket, db IDatabase, carProcessor ICarProcessor
 	}
 }
 
-func (s *Service) Init() error {
-	_, err := s.broker.CreateReader("camera-01", s.handleCamera(CameraID))
+func (h *Handler) Init() error {
+	_, err := h.broker.CreateReader("camera-01", h.handleCamera(CameraID))
+	if err != nil {
+		return err
+	}
+	_, err = h.broker.CreateReader("alarm-on", h.handleAlarmOn())
 	if err != nil {
 		return err
 	}

@@ -32,6 +32,6 @@ func main() {
 	}
 	defer broker.Close()
 
-	r := router.New(cfg.RouterConfig)
+	r := router.New(cfg.RouterConfig, broker)
 	log.Fatal(r.Run())
 }

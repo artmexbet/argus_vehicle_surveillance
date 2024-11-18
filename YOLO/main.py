@@ -1,4 +1,6 @@
 import time
+from os import environ
+
 import cv2
 import torch
 import json
@@ -43,15 +45,16 @@ class VideoCapture:
 
 class ObjectTrackingApp:
     """Главная логика нейросети"""
-    def __init__(self, video_path, model_path, nats_url):
+    def __init__(self, video_path, model_path, nats_url, show_video=True):
         self.video_capture = VideoCapture(video_path)
         self.yolo_model = YoloModel(model_path)
         self.object_tracker = ObjectTracker()
         self.frame_count = 0
-        self.nats_client = NATSConnector(nats_url, "frame_data")
+        self.nats_client = NATSConnector(nats_url, "camera-01")
+        self.show_video = show_video
 
     async def process_frames(self):
-        # await self.nats_client.connect()  # Подключаемся к NATS
+        await self.nats_client.connect()  # Подключаемся к NATS
 
         while True:
             success, frame = self.video_capture.get_frame()
@@ -83,23 +86,27 @@ class ObjectTrackingApp:
                     })
 
             # Публикуем frame_data на NATS
-            # await self.nats_client.publish_frame_data(frame_data)
+            await self.nats_client.publish_frame_data(frame_data)
 
-            # Отображение кадров с аннотацией
-            cv2.imshow("YOLO Tracking", annotated_frame)
+            if self.show_video:
+                # Отображение кадров с аннотацией
+                cv2.imshow("YOLO Tracking", annotated_frame)
 
-            if cv2.waitKey(1) & 0xFF == ord("q"):
-                break
+                if cv2.waitKey(1) & 0xFF == ord("q"):
+                    break
 
-        # await self.nats_client.close()  # Закрываем соединение с NATS
+        await self.nats_client.close()  # Закрываем соединение с NATS
         self.video_capture.release()
-        cv2.destroyAllWindows()
+        if self.show_video:
+            cv2.destroyAllWindows()
+
+
+def read_config(config_path):
+    with open(config_path, "r") as file:
+        return json.load(file)
 
 
 if __name__ == "__main__":
-    app = ObjectTrackingApp(
-        video_path="rtsp://admin:Video2023@109.195.69.236:3393/cam/realmonitor?channel=1&subtype=0",
-        model_path="YOLO/yolo11l.pt",
-        nats_url="nats://127.0.0.1:4222"
-    )
+    cfg_path = environ.get("cfg", "config.json")
+    app = ObjectTrackingApp(**read_config(cfg_path))
     asyncio.run(app.process_frames())
