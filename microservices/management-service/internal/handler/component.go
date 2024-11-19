@@ -18,7 +18,12 @@ type IWebSocket interface {
 
 type IDatabase interface {
 	GetAllSecuriedCarsByCamera(models.CameraIDType) ([]models.SecurityCar, error)
-	SetCarToSecurity(models.CarIDType, models.CameraIDType, models.AccountIDType) (models.SecurityCarIDType, error)
+	SetCarToSecurity(
+		models.CarIDType,
+		models.CameraIDType,
+		models.AccountIDType,
+		models.TimestampType,
+	) (models.SecurityCarIDType, error)
 }
 
 type ICarProcessor interface {
@@ -43,11 +48,13 @@ func New(broker IBroker, ws IWebSocket, db IDatabase, carProcessor ICarProcessor
 }
 
 func (h *Handler) Init() error {
-	_, err := h.broker.CreateReader("camera-01", h.handleCamera(CameraID))
+	tmp, _ := uuid.Parse("25d3e590-9870-11ef-a686-0242ac130002")
+	CameraID = models.CameraIDType(tmp)
+	_, err := h.broker.CreateReader("camera", h.HandleCamera(CameraID))
 	if err != nil {
 		return err
 	}
-	_, err = h.broker.CreateReader("alarm-on", h.handleAlarmOn())
+	_, err = h.broker.CreateReader("alarm-on", h.HandleAlarmOn())
 	if err != nil {
 		return err
 	}

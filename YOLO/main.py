@@ -50,7 +50,7 @@ class ObjectTrackingApp:
         self.yolo_model = YoloModel(model_path)
         self.object_tracker = ObjectTracker()
         self.frame_count = 0
-        self.nats_client = NATSConnector(nats_url, "camera-01")
+        self.nats_client = NATSConnector(nats_url, "camera")
         self.show_video = show_video
 
     async def process_frames(self):
@@ -82,7 +82,7 @@ class ObjectTrackingApp:
                         "id": track_id,
                         "class": names[class_id],
                         "bbox": box_xyxyn,
-                        "track_history": [(x, y) for x, y in track]
+                        # "track_history": [(x, y) for x, y in track]
                     })
 
             # Публикуем frame_data на NATS

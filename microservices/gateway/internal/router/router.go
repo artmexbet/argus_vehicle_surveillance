@@ -9,6 +9,8 @@ import (
 
 type IBroker interface {
 	CreateReader(string, nats.MsgHandler) (*nats.Subscription, error)
+	Publish(string, []byte) error
+	Request(string, []byte) ([]byte, error)
 }
 
 type Config struct {

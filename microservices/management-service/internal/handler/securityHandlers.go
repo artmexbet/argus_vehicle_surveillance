@@ -2,28 +2,59 @@ package handler
 
 import (
 	"Argus/pkg/models"
+	"encoding/json"
 	"github.com/nats-io/nats.go"
+	"log/slog"
 )
 
-// handleCamera is a method that handles info about object from camera with cameraID
-func (h *Handler) handleCamera(cameraID models.CameraIDType) nats.MsgHandler {
+// HandleCamera is a method that handles info about object from camera with cameraID
+func (h *Handler) HandleCamera(cameraID models.CameraIDType) nats.MsgHandler {
 	return func(msg *nats.Msg) {
+		slog.Info("Received message from camera %v", cameraID)
 		// Send message with secCar infos to centrifugo
-		err := h.ws.Publish("camera-01", msg.Data)
+		err := h.ws.Publish("camera-01-ws", msg.Data)
 		if err != nil {
+			slog.Error("Error while sending message to centrifugo: %v", err)
+			return
+		}
+
+		var yoloJson models.YOLOJson
+		if err := json.Unmarshal(msg.Data, &yoloJson); err != nil {
+			slog.Error("Error while unmarshalling message: %v", err)
 			return
 		}
 
 		secCars, err := h.db.GetAllSecuriedCarsByCamera(cameraID)
 		if err != nil {
+			slog.Error("Error while getting all securied cars by camera: %v", err)
 			return
 		}
 
 		// Process cars. Sort it to security cars lists
 		for _, secCar := range secCars {
-			h.carProcessor.AppendCarInfo(secCar.ID, models.CarInfo{
-				ID: secCar.CarID,
-			})
+			isCarFound := false
+			for _, obj := range yoloJson.Objects {
+				if obj.Class == "car" {
+					// Check if the object is in the bbox
+					if secCar.CarID == models.CarIDType(obj.Id) {
+						slog.Info("Car %v is in the bbox", secCar.CarID)
+						h.carProcessor.AppendCarInfo(secCar.ID, models.CarInfo{
+							ID:         secCar.CarID,
+							Bbox:       obj.BBox,
+							IsCarFound: true,
+						})
+						isCarFound = true
+						break
+					}
+				}
+			}
+
+			if !isCarFound {
+				slog.Info("Car %v is not in the bbox", secCar.CarID)
+				h.carProcessor.AppendCarInfo(secCar.ID, models.CarInfo{
+					IsCarFound: false,
+				})
+			}
 		}
 	}
 }

@@ -5,9 +5,11 @@ import (
 	centrifugoConnector "Argus/microservices/management-service/internal/centrifugo-connector"
 	"Argus/microservices/management-service/internal/handler"
 	postgresConnector "Argus/microservices/management-service/internal/postgres-connector"
+	wsConnector "Argus/microservices/management-service/internal/ws-connector"
 	natsConnector "Argus/pkg/nats-connector"
 	"github.com/ilyakaznacheev/cleanenv"
 	"log"
+	"log/slog"
 )
 
 type Config struct {
@@ -30,21 +32,25 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	slog.Info("Config initialised: %+v", cfg)
 
 	broker, err := natsConnector.New(cfg.NatsConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer broker.Close()
+	slog.Info("Nats broker initialised")
 
 	db, err := postgresConnector.New(cfg.DbConfig)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer db.Close()
+	slog.Info("Postgres connector initialised")
 
-	ws, err := centrifugoConnector.New(cfg.CentrifugoConfig)
-	defer ws.Close()
+	//ws, err := centrifugoConnector.New(cfg.CentrifugoConfig)
+	//defer ws.Close()
+	ws := wsConnector.New(broker) // Временно заменил centrifugo на простой сокет
 
 	cp := carProcessor.New(cfg.CarProcessorConfig)
 
@@ -53,6 +59,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	slog.Info("Ready. Listening the broker")
 
 	select {}
 }

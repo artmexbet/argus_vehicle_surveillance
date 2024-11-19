@@ -9,7 +9,7 @@ services:
       - "5434:5432"  # Проксирую на другой порт, чтобы не конфликтовал с локальным сервером
     volumes:
       - ./db_data:/var/lib/postgresql/data
-      - ./microservices/management-handler/internal/db:/docker-entrypoint-initdb.d
+      - ./init_db:/docker-entrypoint-initdb.d
     restart: unless-stopped
     networks:
       - net
@@ -39,7 +39,8 @@ services:
     depends_on:
       - db
       - broker
-      - centrifugo
+#      - centrifugo
+      - websocket
     networks:
       - net
 
@@ -51,19 +52,34 @@ services:
       - "6222:6222"
     networks:
       - net
+    restart: unless-stopped
 
-  centrifugo:
-    container_name: centrifugo
-    image: centrifugo/centrifugo:v5
-    volumes:
-      - ./deploy/centrifugo-config.json:/centrifugo/config.json
-    command: centrifugo -c config.json
+#  centrifugo:
+#    container_name: centrifugo
+#    image: centrifugo/centrifugo:v5
+#    volumes:
+#      - ./deploy/centrifugo-config.json:/centrifugo/config.json
+#    command: centrifugo -c config.json
+#    ports:
+#      - "8000:8000"
+#    ulimits:
+#      nofile:
+#        soft: 65535
+#        hard: 65535
+
+  websocket:
+    build:
+      dockerfile: deploy/golang/Dockerfile
+      context: .
+      args:
+        - BUILD_IMAGE=go-build
+        - SERVICE_NAME=websocket
+    depends_on:
+      - broker
     ports:
-      - "8000:8000"
-    ulimits:
-      nofile:
-        soft: 65535
-        hard: 65535
+      - "3000:3000"
+    networks:
+      - net
 
   yolo:
     build:

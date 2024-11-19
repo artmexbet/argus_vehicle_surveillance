@@ -11,5 +11,16 @@ type AlarmOnRequest struct {
 	CameraID  CameraIDType  `json:"camera_id" validate:"required"`
 	AccountID AccountIDType `json:"account_id" validate:"required"`
 	CarID     CarIDType     `json:"car_id" validate:"required"`
-	Time      string        `json:"time" validate:"required,datetime"`
+	Time      TimestampType `json:"time" validate:"required"`
+}
+
+type YOLOObject struct {
+	Id    int       `json:"id"`
+	Class string    `json:"class"`
+	BBox  []float32 `json:"bbox"`
+}
+
+type YOLOJson struct {
+	FrameID int          `json:"frame_id"`
+	Objects []YOLOObject `json:"objects"`
 }
