@@ -27,7 +27,7 @@ class YoloModel:
         self.model = YOLO(model_path).cuda()
 
     def detect_objects(self, frame):
-        return self.model.track(frame, persist=True, stream=True)
+        return self.model.track(frame, persist=True, stream=True, conf=0.7)
     
 
 class VideoCapture:

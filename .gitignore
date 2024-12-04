@@ -3,3 +3,7 @@ db_data
 YOLO/.venv/
 YOLO/.vscode
 YOLO/__pycache__
+.venv
+.env
+env/
+telegram_bot/config/__pycache__
