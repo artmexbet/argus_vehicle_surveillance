@@ -6,4 +6,4 @@ YOLO/__pycache__
 .venv
 .env
 env/
-telegram_bot/config/__pycache__
+**/__pycache__/
