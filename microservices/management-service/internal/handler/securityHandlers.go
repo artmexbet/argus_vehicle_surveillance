@@ -43,6 +43,9 @@ func (h *Handler) HandleCamera(cameraID models.CameraIDType) nats.MsgHandler {
 							Bbox:       obj.BBox,
 							IsCarFound: true,
 						})
+						if h.carProcessor.ShouldNotify(secCar.ID) {
+							// TODO: send message to security service
+						}
 						isCarFound = true
 						break
 					}

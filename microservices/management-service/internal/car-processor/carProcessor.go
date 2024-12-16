@@ -8,8 +8,9 @@ import (
 
 // Config represents the configuration of the car processor
 type Config struct {
-	InfoCount          int `yaml:"info_count" env:"INFO_COUNT" env-default:"100"`
-	MovementCheckDelay int `yaml:"movement_check_delay" env:"MOVEMENT_CHECK_DELAY" env-default:"5"`
+	InfoCount          int     `yaml:"info_count" env:"INFO_COUNT" env-default:"100"`
+	MovementCheckDelay int     `yaml:"movement_check_delay" env:"MOVEMENT_CHECK_DELAY" env-default:"5"`
+	MovementThreshhold float32 `yaml:"movement_threshhold" env:"MOVEMENT_THRESHHOLD" env-default:"0.01"`
 }
 
 // CarProcessor represents the car processor
@@ -61,4 +62,35 @@ func (cp *CarProcessor) SetToSecurity(secCarID models.SecurityCarIDType, event c
 	// If the car is moving for a long time, send a message to the security service
 
 	time.Sleep(time.Duration(cp.cfg.MovementCheckDelay) * time.Second)
+}
+
+func (cp *CarProcessor) ShouldNotify(secCarID models.SecurityCarIDType) bool {
+	cp.mu.RLock()
+	defer cp.mu.RUnlock()
+
+	// iterate over a map and check if the car is moving
+	maxX := float32(0)
+	maxY := float32(0)
+	minX := float32(1)
+	minY := float32(1)
+	carInfo := cp.carInfos[secCarID]
+	for _, info := range carInfo {
+		x := (info.Bbox[0] + info.Bbox[2]) / 2
+		y := (info.Bbox[1] + info.Bbox[3]) / 2
+		if x > maxX {
+			maxX = x
+		}
+		if y > maxY {
+			maxY = y
+		}
+		if x < minX {
+			minX = x
+		}
+		if y < minY {
+			minY = y
+		}
+	}
+
+	th := cp.cfg.MovementThreshhold
+	return maxX-minX > th || maxY-minY > th
 }

@@ -29,6 +29,7 @@ type IDatabase interface {
 type ICarProcessor interface {
 	AppendCarInfo(models.SecurityCarIDType, models.CarInfo)
 	GetCarInfos(models.SecurityCarIDType) []models.CarInfo
+	ShouldNotify(models.SecurityCarIDType) bool
 }
 
 type Handler struct {
