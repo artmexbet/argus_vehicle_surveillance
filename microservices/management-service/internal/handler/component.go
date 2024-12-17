@@ -24,6 +24,7 @@ type IDatabase interface {
 		models.AccountIDType,
 		models.TimestampType,
 	) (models.SecurityCarIDType, error)
+	GetAccountIdByLogin(string) (models.AccountIDType, error)
 }
 
 type ICarProcessor interface {

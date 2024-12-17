@@ -1,7 +1,7 @@
 package models
 
 import (
-	"fmt"
+	"encoding/json"
 	"github.com/google/uuid"
 	"strings"
 	"time"
@@ -19,14 +19,13 @@ func (ait *AccountIDType) UnmarshalJSON(b []byte) error {
 }
 
 func (ait *AccountIDType) MarshalJSON() ([]byte, error) {
-	return []byte(fmt.Sprintf("\"%s\"", uuid.UUID(*ait).String())), nil
+	return json.Marshal(uuid.UUID(*ait).String())
 }
 
 type CarIDType int
 type TimestampType time.Time
 
 func (t *TimestampType) UnmarshalJSON(b []byte) error {
-	fmt.Println(strings.Trim(string(b[:]), "\""))
 	tt, err := time.Parse(time.RFC3339, strings.Trim(string(b[:]), "\""))
 	if err != nil {
 		return err
@@ -36,5 +35,5 @@ func (t *TimestampType) UnmarshalJSON(b []byte) error {
 }
 
 func (t *TimestampType) MarshalJSON() ([]byte, error) {
-	return []byte(fmt.Sprintf("\"%s\"", time.Time(*t).Format(time.RFC3339))), nil
+	return json.Marshal(time.Time(*t).Format(time.RFC3339))
 }

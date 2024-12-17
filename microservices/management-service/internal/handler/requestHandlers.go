@@ -2,7 +2,9 @@ package handler
 
 import (
 	"Argus/pkg/models"
+	natsConnector "Argus/pkg/nats-connector"
 	"encoding/json"
+	"github.com/google/uuid"
 	"github.com/nats-io/nats.go"
 	"log/slog"
 )
@@ -19,13 +21,31 @@ func (h *Handler) HandleAlarmOn() nats.MsgHandler {
 			}
 		}
 
-		id, err := h.db.SetCarToSecurity(alarmOnRequest.CarID,
-			alarmOnRequest.CameraID,
-			alarmOnRequest.AccountID,
-			alarmOnRequest.Time)
+		camId, _ := uuid.Parse("25d3e590-9870-11ef-a686-0242ac130002")
+		accId, err := h.db.GetAccountIdByLogin(alarmOnRequest.Login)
 		if err != nil {
-			slog.Error("Cannot get cars", err.Error())
-			err := msg.Respond([]byte(err.Error()))
+			slog.Error(
+				"Cannot get account with login",
+				slog.String("login", alarmOnRequest.Login),
+				slog.String("error", err.Error()),
+			)
+
+			bytes, _ := json.Marshal(natsConnector.NewResponse([]byte(err.Error()), 400))
+			msg.Respond(bytes)
+			return
+		}
+
+		id, err := h.db.SetCarToSecurity(
+			alarmOnRequest.CarID,
+			models.CameraIDType(camId),
+			accId,
+			alarmOnRequest.Time,
+		)
+		if err != nil {
+			slog.Error("Cannot set cars", err.Error())
+			errResp := natsConnector.NewResponse([]byte(err.Error()), 500)
+			bytes, _ := json.Marshal(errResp)
+			err := msg.Respond(bytes)
 			if err != nil {
 				slog.Error(err.Error())
 			}
@@ -35,7 +55,8 @@ func (h *Handler) HandleAlarmOn() nats.MsgHandler {
 		type Response struct {
 			ID models.SecurityCarIDType `json:"id"`
 		}
-		data, err := json.Marshal(Response{ID: id})
+		tmp := Response{ID: id}
+		data, err := json.Marshal(&tmp)
 		if err != nil {
 			err := msg.Respond([]byte(err.Error()))
 			if err != nil {
@@ -43,6 +64,7 @@ func (h *Handler) HandleAlarmOn() nats.MsgHandler {
 			}
 			return
 		}
-		msg.Respond(data)
+		resp, _ := json.Marshal(natsConnector.NewResponse(data, 201))
+		msg.Respond(resp)
 	}
 }

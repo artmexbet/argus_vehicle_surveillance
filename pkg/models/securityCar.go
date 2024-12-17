@@ -1,7 +1,7 @@
 package models
 
 import (
-	"fmt"
+	"encoding/json"
 	"github.com/google/uuid"
 )
 
@@ -17,5 +17,5 @@ func (scid *SecurityCarIDType) UnmarshalJSON(b []byte) error {
 }
 
 func (scid *SecurityCarIDType) MarshalJSON() ([]byte, error) {
-	return []byte(fmt.Sprintf("\"%s\"", uuid.UUID(*scid).String())), nil
+	return json.Marshal(uuid.UUID(*scid).String())
 }

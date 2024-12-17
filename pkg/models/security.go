@@ -8,10 +8,9 @@ type SecurityCar struct {
 }
 
 type AlarmOnRequest struct {
-	CameraID  CameraIDType  `json:"camera_id" validate:"required"`
-	AccountID AccountIDType `json:"account_id" validate:"required"`
-	CarID     CarIDType     `json:"car_id" validate:"required"`
-	Time      TimestampType `json:"time" validate:"required"`
+	Login string        `json:"login" validate:"required"`
+	CarID CarIDType     `json:"car_id" validate:"required"`
+	Time  TimestampType `json:"time" validate:"required"`
 }
 
 type YOLOObject struct {
