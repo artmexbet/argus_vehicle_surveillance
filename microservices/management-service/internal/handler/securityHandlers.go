@@ -35,7 +35,6 @@ func (h *Handler) HandleCamera(cameraID models.CameraIDType) nats.MsgHandler {
 			isCarFound := false
 			for _, obj := range yoloJson.Objects {
 				if obj.Class == "car" {
-					// Check if the object is in the bbox
 					if secCar.CarID == models.CarIDType(obj.Id) {
 						slog.Info("Car %v is in the bbox", secCar.CarID)
 						h.carProcessor.AppendCarInfo(secCar.ID, models.CarInfo{

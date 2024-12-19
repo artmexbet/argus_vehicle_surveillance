@@ -4,6 +4,7 @@ import (
 	carProcessor "Argus/microservices/management-service/internal/car-processor"
 	centrifugoConnector "Argus/microservices/management-service/internal/centrifugo-connector"
 	"Argus/microservices/management-service/internal/handler"
+	notificationsManager "Argus/microservices/management-service/internal/notifications-manager"
 	postgresConnector "Argus/microservices/management-service/internal/postgres-connector"
 	wsConnector "Argus/microservices/management-service/internal/ws-connector"
 	natsConnector "Argus/pkg/nats-connector"
@@ -13,10 +14,11 @@ import (
 )
 
 type Config struct {
-	NatsConfig         *natsConnector.Config       `yaml:"nats" env-prefix:"NATS_"`
-	DbConfig           *postgresConnector.Config   `yaml:"db" env-prefix:"DB_"`
-	CentrifugoConfig   *centrifugoConnector.Config `yaml:"centrifugo" env-prefix:"CENTRIFUGO_"`
-	CarProcessorConfig *carProcessor.Config        `yaml:"car-processor" env-prefix:"CAR_PROCESSOR_"`
+	NatsConfig         *natsConnector.Config        `yaml:"nats" env-prefix:"NATS_"`
+	DbConfig           *postgresConnector.Config    `yaml:"db" env-prefix:"DB_"`
+	CentrifugoConfig   *centrifugoConnector.Config  `yaml:"centrifugo" env-prefix:"CENTRIFUGO_"`
+	CarProcessorConfig *carProcessor.Config         `yaml:"car-processor" env-prefix:"CAR_PROCESSOR_"`
+	NotificationConfig *notificationsManager.Config `yaml:"notifications" env-prefix:"NOTIFICATIONS_"`
 }
 
 func readConfig(filename string) (*Config, error) {
@@ -52,7 +54,8 @@ func main() {
 	//defer ws.Close()
 	ws := wsConnector.New(broker) // Временно заменил centrifugo на простой сокет
 
-	cp := carProcessor.New(cfg.CarProcessorConfig)
+	nm := notificationsManager.New(cfg.NotificationConfig)
+	cp := carProcessor.New(cfg.CarProcessorConfig, nm)
 
 	svc := handler.New(broker, ws, db, cp)
 	err = svc.Init()
