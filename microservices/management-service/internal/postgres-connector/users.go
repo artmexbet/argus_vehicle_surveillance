@@ -12,3 +12,17 @@ func (p *PostgresConnector) GetAccountIdByLogin(login string) (models.AccountIDT
           WHERE login=$1;`, login).Scan(&id)
 	return id, err
 }
+
+// GetTelegramId returns telegram id of user attached to security car
+func (p *PostgresConnector) GetTelegramId(secId models.SecurityCarIDType) (int64, error) {
+	var telegramId int64
+	err := p.conn.QueryRow(
+		context.Background(),
+		`SELECT telegram_id FROM public.profile p 
+    JOIN public.accounts a on p.account_id = a.id
+    JOIN public.security_cars sc on a.id = sc.account_id
+    WHERE sc.id = $1`,
+		secId,
+	).Scan(&telegramId)
+	return telegramId, err
+}

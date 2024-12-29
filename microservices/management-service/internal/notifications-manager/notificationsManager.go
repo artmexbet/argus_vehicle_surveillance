@@ -17,7 +17,7 @@ type IBroker interface {
 }
 
 type IDatabase interface {
-	GetTelegramId(idType models.SecurityCarIDType) (int64, error)
+	GetTelegramId(models.SecurityCarIDType) (int64, error)
 }
 
 // NotificationsManager is a component which manages application notifications
@@ -46,6 +46,7 @@ func (nm *NotificationsManager) SendNotification(secId models.SecurityCarIDType,
 	id, err := nm.db.GetTelegramId(secId)
 	if err != nil {
 		slog.Error("Cannot get telegram id", err.Error())
+		return err
 	}
 
 	tmp := &SecurityCarNotification{UserId: id}
