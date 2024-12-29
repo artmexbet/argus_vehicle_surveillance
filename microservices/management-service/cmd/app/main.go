@@ -54,7 +54,8 @@ func main() {
 	//defer ws.Close()
 	ws := wsConnector.New(broker) // Временно заменил centrifugo на простой сокет
 
-	nm := notificationsManager.New(cfg.NotificationConfig)
+	// TODO: add to db method getting telegram id. Change db structure
+	nm := notificationsManager.New(cfg.NotificationConfig, broker, db)
 	cp := carProcessor.New(cfg.CarProcessorConfig, nm)
 
 	svc := handler.New(broker, ws, db, cp)

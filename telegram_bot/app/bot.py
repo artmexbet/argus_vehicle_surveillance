@@ -106,8 +106,8 @@ async def main():
         subject=config.nats_subject.get_secret_value(),
         message_handler=nats_message_handler,
     )
-    # await asyncio.gather(nats_connector.run(), dp.start_polling(bot))
-    await asyncio.gather(dp.start_polling(bot))
+    await asyncio.gather(nats_connector.run(), dp.start_polling(bot))
+    # await asyncio.gather(dp.start_polling(bot))
 
 
 if __name__ == "__main__":
