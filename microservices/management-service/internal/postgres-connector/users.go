@@ -26,3 +26,15 @@ func (p *PostgresConnector) GetTelegramId(secId models.SecurityCarIDType) (int64
 	).Scan(&telegramId)
 	return telegramId, err
 }
+
+// CheckHasUserTelegramId returns true if id specified to user, else returns false
+func (p *PostgresConnector) CheckHasUserTelegramId(accountId models.AccountIDType) (bool, error) {
+	var hasTelegramId bool
+	err := p.conn.QueryRow(
+		context.Background(),
+		`SELECT telegram_id IS NOT NULL FROM public.profile p 
+		WHERE p.account_id = $1`,
+		accountId,
+	).Scan(&hasTelegramId)
+	return hasTelegramId, err
+}

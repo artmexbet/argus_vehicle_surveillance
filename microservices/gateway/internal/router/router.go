@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/swagger"
 	"github.com/nats-io/nats.go"
 )
 
@@ -34,7 +35,8 @@ func New(cfg *Config, broker IBroker) *Router {
 		broker:    broker,
 	}
 
-	router.app.Get("/camera/list", router.CameraList())
+	router.app.Get("/swagger/*", swagger.HandlerDefault)
+
 	router.app.Post("/alarm", router.AlarmOn())
 	return router
 }

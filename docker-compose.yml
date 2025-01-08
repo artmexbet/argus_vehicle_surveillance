@@ -16,7 +16,7 @@ services:
 
   gateway:
     build:
-      dockerfile: deploy/golang/Dockerfile
+      dockerfile: deploy/golang/with_docs/Dockerfile
       context: .
       args:
         - BUILD_IMAGE=go-build

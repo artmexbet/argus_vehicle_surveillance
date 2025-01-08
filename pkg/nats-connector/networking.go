@@ -5,6 +5,6 @@ type NetworkResponse struct {
 	HTTPCode int    `json:"HTTPCode"`
 }
 
-func NewResponse(data []byte, code int) NetworkResponse {
-	return NetworkResponse{data, code}
+func NewResponse(data []byte, code int) *NetworkResponse {
+	return &NetworkResponse{data, code}
 }

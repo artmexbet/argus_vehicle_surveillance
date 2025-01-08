@@ -13,6 +13,10 @@ type AlarmOnRequest struct {
 	Time  TimestampType `json:"time" validate:"required"`
 }
 
+type AlarmOnResponse struct {
+	ID SecurityCarIDType `json:"id"`
+}
+
 type YOLOObject struct {
 	Id    int       `json:"id"`
 	Class string    `json:"class"`

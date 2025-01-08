@@ -31,7 +31,23 @@ func (h *Handler) HandleAlarmOn() nats.MsgHandler {
 			)
 
 			bytes, _ := json.Marshal(natsConnector.NewResponse([]byte(err.Error()), 400))
-			msg.Respond(bytes)
+			_ = msg.Respond(bytes)
+			return
+		}
+
+		if has, err := h.db.CheckHasUserTelegramId(accId); err != nil {
+			slog.Error(
+				"Cannot check telegram id",
+				slog.String("error", err.Error()),
+				slog.Any("accountId", accId),
+			)
+
+			bytes, _ := json.Marshal(natsConnector.NewResponse([]byte(err.Error()), 500))
+			_ = msg.Respond(bytes)
+			return
+		} else if !has {
+			bytes, _ := json.Marshal(natsConnector.NewResponse([]byte("TelegramId is not specified"), 400))
+			_ = msg.Respond(bytes)
 			return
 		}
 
@@ -52,10 +68,7 @@ func (h *Handler) HandleAlarmOn() nats.MsgHandler {
 			return
 		}
 
-		type Response struct {
-			ID models.SecurityCarIDType `json:"id"`
-		}
-		tmp := Response{ID: id}
+		tmp := models.AlarmOnResponse{ID: id}
 		data, err := json.Marshal(&tmp)
 		if err != nil {
 			err := msg.Respond([]byte(err.Error()))

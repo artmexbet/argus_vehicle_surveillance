@@ -25,6 +25,7 @@ type IDatabase interface {
 		models.TimestampType,
 	) (models.SecurityCarIDType, error)
 	GetAccountIdByLogin(string) (models.AccountIDType, error)
+	CheckHasUserTelegramId(models.AccountIDType) (bool, error)
 }
 
 type ICarProcessor interface {

@@ -1,0 +1,63 @@
+basePath: /
+definitions:
+  models.AlarmOnRequest:
+    properties:
+      car_id:
+        type: integer
+      login:
+        type: string
+      time:
+        type: string
+    required:
+    - car_id
+    - login
+    - time
+    type: object
+  models.AlarmOnResponse:
+    properties:
+      id:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact:
+    email: fiber@swagger.io
+    name: API Support
+  description: This is a sample swagger docs for argus project
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Argus API docs
+  version: "1.0"
+paths:
+  /alarm:
+    post:
+      consumes:
+      - application/json
+      description: Set car to security
+      operationId: alarm-on
+      parameters:
+      - description: AlarmOnRequest
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.AlarmOnRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.AlarmOnResponse'
+        "400":
+          description: Struct is invalid
+          schema:
+            type: string
+        "500":
+          description: Cannot request message
+          schema:
+            type: string
+      summary: Set car to security
+swagger: "2.0"

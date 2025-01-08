@@ -8,12 +8,17 @@ import (
 	"log/slog"
 )
 
-func (r *Router) CameraList() fiber.Handler {
-	return func(c *fiber.Ctx) error {
-		return c.SendString("Camera list")
-	}
-}
-
+// @Summary Set car to security
+// @Description Set car to security
+// @ID alarm-on
+// @Accept json
+// @Produce json
+// @Param body body models.AlarmOnRequest true "AlarmOnRequest"
+// @Success 200 {object} models.AlarmOnResponse
+// @Failure 400 {string} string "Cannot parse body"
+// @Failure 400 {string} string "Struct is invalid"
+// @Failure 500 {string} string "Cannot request message"
+// @Router /alarm [post]
 func (r *Router) AlarmOn() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		req := new(models.AlarmOnRequest)
