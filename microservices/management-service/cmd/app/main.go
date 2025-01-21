@@ -55,7 +55,7 @@ func main() {
 	ws := wsConnector.New(broker) // Временно заменил centrifugo на простой сокет
 
 	nm := notificationsManager.New(cfg.NotificationConfig, broker, db)
-	cp := carProcessor.New(cfg.CarProcessorConfig, nm)
+	cp := carProcessor.New(cfg.CarProcessorConfig, nm, db)
 
 	svc := handler.New(broker, ws, db, cp)
 	err = svc.Init()

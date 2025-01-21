@@ -9,7 +9,7 @@ import (
 
 // Config ...
 type Config struct {
-	NotificationTopic string `yaml:"notificationTopic" env-default:"security_car_notification"`
+	NotificationTopic string `yaml:"topic" env-default:"security_car_notification"`
 }
 
 type IBroker interface {
@@ -40,7 +40,8 @@ func New(cfg *Config, broker IBroker, db IDatabase) *NotificationsManager {
 func (nm *NotificationsManager) SendNotification(secId models.SecurityCarIDType, text string) error {
 	slog.Info(fmt.Sprintf("Sending notification about security car %s: %s", secId, text))
 	type SecurityCarNotification struct {
-		UserId int64 `json:"telegram_id"`
+		UserId int64  `json:"telegram_id"`
+		Text   string `json:"text"`
 	}
 
 	id, err := nm.db.GetTelegramId(secId)
@@ -49,7 +50,7 @@ func (nm *NotificationsManager) SendNotification(secId models.SecurityCarIDType,
 		return err
 	}
 
-	tmp := &SecurityCarNotification{UserId: id}
+	tmp := &SecurityCarNotification{UserId: id, Text: text}
 	data, _ := json.Marshal(tmp)
 	nm.broker.Publish(nm.cfg.NotificationTopic, data)
 	return nil

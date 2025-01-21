@@ -13,6 +13,9 @@ centrifugo:
 car-processor:
   info_count: 500
   movement_check_delay: 5
+  lost_car_timeout: 60
+notifications:
+  topic: security_car_notifications
 router:
     host: 0.0.0.0
     port: 8080

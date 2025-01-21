@@ -21,7 +21,7 @@ class NATSConnector:
         payload = json.dumps(frame_data).encode('utf-8')
         await self.nc.publish("camera", payload)
         await self.nc.flush()
-        print(f"Published frame_data to '{self.subject}': {frame_data}")
+        # print(f"Published frame_data to '{self.subject}': {frame_data}")
 
     async def close(self):
         # Закрываем соединение с NATS

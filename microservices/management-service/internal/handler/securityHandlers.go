@@ -10,7 +10,7 @@ import (
 // HandleCamera is a method that handles info about object from camera with cameraID
 func (h *Handler) HandleCamera(cameraID models.CameraIDType) nats.MsgHandler {
 	return func(msg *nats.Msg) {
-		slog.Info("Received message from camera %v", cameraID)
+		//slog.Info("Received message from camera %v", cameraID)
 		// Send message with secCar infos to centrifugo
 		err := h.ws.Publish("camera-01-ws", msg.Data)
 		if err != nil {
@@ -26,7 +26,7 @@ func (h *Handler) HandleCamera(cameraID models.CameraIDType) nats.MsgHandler {
 
 		secCars, err := h.db.GetAllSecuriedCarsByCamera(cameraID)
 		if err != nil {
-			slog.Error("Error while getting all securied cars by camera: %v", err)
+			//slog.Error("Error while getting all securied cars by camera: %v", err)
 			return
 		}
 
@@ -34,9 +34,8 @@ func (h *Handler) HandleCamera(cameraID models.CameraIDType) nats.MsgHandler {
 		for _, secCar := range secCars {
 			isCarFound := false
 			for _, obj := range yoloJson.Objects {
-				if obj.Class == "car" {
+				if obj.Class == "car" || obj.Class == "truck" {
 					if secCar.CarID == models.CarIDType(obj.Id) {
-						slog.Info("Car %v is in the bbox", secCar.CarID)
 						h.carProcessor.AppendCarInfo(secCar.ID, models.CarInfo{
 							ID:         secCar.CarID,
 							Bbox:       obj.BBox,
@@ -49,7 +48,6 @@ func (h *Handler) HandleCamera(cameraID models.CameraIDType) nats.MsgHandler {
 			}
 
 			if !isCarFound {
-				slog.Info("Car %v is not in the bbox", secCar.CarID)
 				h.carProcessor.AppendCarInfo(secCar.ID, models.CarInfo{
 					IsCarFound: false,
 				})

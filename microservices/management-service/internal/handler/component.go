@@ -31,6 +31,7 @@ type IDatabase interface {
 type ICarProcessor interface {
 	AppendCarInfo(models.SecurityCarIDType, models.CarInfo)
 	GetCarInfos(models.SecurityCarIDType) []models.CarInfo
+	SetToSecurity(models.SecurityCarIDType)
 }
 
 type Handler struct {

@@ -27,18 +27,34 @@ func (nm *NotificationManager) SendNotification(secCarID models.SecurityCarIDTyp
 	return nil
 }
 
-func initCP(nm INotificationManager) *CarProcessor {
+type Database struct {
+}
+
+func NewDatabase() *Database {
+	return &Database{}
+}
+
+func (db *Database) StopVehicleTracking(secId models.SecurityCarIDType) error {
+	return nil
+}
+
+func (db *Database) AddEvent(secId models.SecurityCarIDType, eventTypeId int64) error {
+	return nil
+}
+
+func initCP(nm INotificationManager, db IDatabase) *CarProcessor {
 	cfg := &Config{
 		InfoCount:          100,
 		MovementCheckDelay: 5,
 		Sensitivity:        0.01,
 	}
-	return New(cfg, nm)
+	return New(cfg, nm, db)
 }
 
 func TestCarProcessor_AppendCarInfo(t *testing.T) {
 	nm := NewNotificationManager()
-	cp := initCP(nm)
+	db := NewDatabase()
+	cp := initCP(nm, db)
 	secCarID := models.SecurityCarIDType(uuid.New())
 	carInfo := models.CarInfo{
 		ID:         models.CarIDType(1),
@@ -129,7 +145,8 @@ func TestCarProcessor_SetToSecurity(t *testing.T) {
 	FPS := 15
 
 	nm := NewNotificationManager()
-	cp := initCP(nm)
+	db := NewDatabase()
+	cp := initCP(nm, db)
 	secCarID := models.SecurityCarIDType(uuid.New())
 	carInfos := generateStayingCarInfo(200, models.CarIDType(1))
 	cp.SetToSecurity(secCarID)
@@ -170,7 +187,8 @@ func TestCarProcessor_SetToSecurityMovingCar(t *testing.T) {
 	FPS := 15
 
 	nm := NewNotificationManager()
-	cp := initCP(nm)
+	db := NewDatabase()
+	cp := initCP(nm, db)
 	secCarID := models.SecurityCarIDType(uuid.New())
 	carInfos := generateMovingCarInfo(200, models.CarIDType(1))
 	cp.SetToSecurity(secCarID)
@@ -204,7 +222,7 @@ func TestCarProcessor_SetToSecurityNotFoundCar(t *testing.T) {
 	FPS := 15
 
 	nm := NewNotificationManager()
-	cp := initCP(nm)
+	cp := initCP(nm, NewDatabase())
 	secCarID := models.SecurityCarIDType(uuid.New())
 	carInfos := generateNotFoundCarInfo(200, models.CarIDType(1))
 	cp.SetToSecurity(secCarID)

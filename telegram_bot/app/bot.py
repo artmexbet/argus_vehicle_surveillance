@@ -83,16 +83,14 @@ async def nats_message_handler(msg):
         payload = json.loads(data)
 
         telegram_id = payload.get("telegram_id")
-        car_model = payload.get("car_model", "car")
-        timestamp = payload.get("timestamp", "unknown")
+        msg = payload.get("text")
 
         if not telegram_id:
             print("Ошибка: Telegram ID не найден.")
             return
         text = (
             f"⚠️ Попытка угона автомобиля! ⚠️\n"
-            f"Модель: {car_model}\n"
-            f"Время: {timestamp}"
+            f"Сообщение: {msg}\n"
         )
         await bot.send_message(chat_id=telegram_id, text=text)
         print(f"Уведомление отправлено пользователю: {telegram_id}")

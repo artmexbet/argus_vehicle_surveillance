@@ -46,20 +46,22 @@ class VideoCapture:
 class ObjectTrackingApp:
     """Главная логика нейросети"""
     def __init__(self, video_path, model_path, nats_url, show_video=True):
-        self.video_capture = VideoCapture(video_path)
         self.yolo_model = YoloModel(model_path)
+        self.video_capture : VideoCapture = None
         self.object_tracker = ObjectTracker()
         self.frame_count = 0
         self.nats_client = NATSConnector(nats_url, "camera")
         self.show_video = show_video
+        self.video_path = video_path
 
     async def process_frames(self):
         await self.nats_client.connect()  # Подключаемся к NATS
+        self.video_capture = VideoCapture(self.video_path)
 
         while True:
             success, frame = self.video_capture.get_frame()
             if not success:
-                break
+                continue
 
             self.frame_count += 1
             results = self.yolo_model.detect_objects(frame)
@@ -70,14 +72,16 @@ class ObjectTrackingApp:
 
                 boxes_xyxyn = result.boxes.xyxyn.tolist()
                 boxes_xywhn = result.boxes.xywhn.tolist()
+                if result.boxes.id is None:
+                    continue
                 track_ids = result.boxes.id.int().tolist()
                 class_ids = result.boxes.cls.int().tolist()
                 names = result.names
                 confidences = result.boxes.conf.tolist()
 
                 for box_xyxyn, box_xywhn, track_id, class_id, confidence in zip(boxes_xyxyn, boxes_xywhn, track_ids, class_ids, confidences):
-                    x_center, y_center, width, height = box_xywhn
-                    track = self.object_tracker.update_track(track_id, x_center, y_center)
+                    # x_center, y_center, width, height = box_xywhn
+                    # track = self.object_tracker.update_track(track_id, x_center, y_center)
                     frame_data["objects"].append({
                         "id": track_id,
                         "class": names[class_id],
