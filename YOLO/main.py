@@ -33,6 +33,7 @@ class YoloModel:
 class VideoCapture:
     def __init__(self, video_path):
         self.cap = cv2.VideoCapture(video_path, cv2.CAP_FFMPEG)
+        self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
         if not self.cap.isOpened():
             raise Exception("Failed to open video stream")
 
