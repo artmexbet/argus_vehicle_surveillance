@@ -1,34 +1,19 @@
-import time
+import asyncio
+import json
 from os import environ
 
 import cv2
-import torch
-import json
-import asyncio
-from collections import defaultdict
-from ultralytics import YOLO
 from nats_connector import NATSConnector
+from ultralytics import YOLO
 
-
-class ObjectTracker:
-    def __init__(self):
-        self.track_history = defaultdict(lambda: [])
-
-    def update_track(self, track_id, x_center, y_center):
-        track = self.track_history[track_id]
-        track.append((x_center, y_center))
-        if len(track) > 30:
-            track.pop(0)
-        return track[::10]
-    
 
 class YoloModel:
     def __init__(self, model_path):
         self.model = YOLO(model_path).cuda()
 
     def detect_objects(self, frame):
-        return self.model.track(frame, persist=True, stream=True, conf=0.7)
-    
+        return self.model(frame, conf=0.7)
+
 
 class VideoCapture:
     def __init__(self, video_path):
@@ -46,10 +31,10 @@ class VideoCapture:
 
 class ObjectTrackingApp:
     """Главная логика нейросети"""
+
     def __init__(self, video_path, model_path, nats_url, show_video=True):
         self.yolo_model = YoloModel(model_path)
-        self.video_capture : VideoCapture = None
-        self.object_tracker = ObjectTracker()
+        self.video_capture: VideoCapture = None
         self.frame_count = 0
         self.nats_client = NATSConnector(nats_url, "camera")
         self.show_video = show_video
@@ -71,24 +56,22 @@ class ObjectTrackingApp:
             for result in results:
                 annotated_frame = result.plot()
 
-                boxes_xyxyn = result.boxes.xyxyn.tolist()
-                boxes_xywhn = result.boxes.xywhn.tolist()
-                if result.boxes.id is None:
-                    continue
-                track_ids = result.boxes.id.int().tolist()
-                class_ids = result.boxes.cls.int().tolist()
-                names = result.names
-                confidences = result.boxes.conf.tolist()
+                boxes_xyxyn = result.boxes.xyxyn.tolist()  # Координаты боксов
+                boxes_xywhn = result.boxes.xywhn.tolist()  # Размеры боксов
+                class_ids = result.boxes.cls.int().tolist()  # ID классов
+                names = result.names  # Имена классов
+                confidences = result.boxes.conf.tolist()  # Уверенность в детекции
 
-                for box_xyxyn, box_xywhn, track_id, class_id, confidence in zip(boxes_xyxyn, boxes_xywhn, track_ids, class_ids, confidences):
-                    # x_center, y_center, width, height = box_xywhn
-                    # track = self.object_tracker.update_track(track_id, x_center, y_center)
-                    frame_data["objects"].append({
-                        "id": track_id,
-                        "class": names[class_id],
-                        "bbox": box_xyxyn,
-                        # "track_history": [(x, y) for x, y in track]
-                    })
+                for box_xyxyn, box_xywhn, class_id, confidence in zip(
+                    boxes_xyxyn, boxes_xywhn, class_ids, confidences
+                ):
+                    frame_data["objects"].append(
+                        {
+                            "class": names[class_id],
+                            "bbox": box_xyxyn,
+                            "confidence": confidence,
+                        }
+                    )
 
             # Публикуем frame_data на NATS
             await self.nats_client.publish_frame_data(frame_data)
@@ -97,13 +80,13 @@ class ObjectTrackingApp:
                 # Отображение кадров с аннотацией
                 cv2.imshow("YOLO Tracking", annotated_frame)
 
-                if cv2.waitKey(1) & 0xFF == ord("q"):
-                    break
+        #         if cv2.waitKey(1) & 0xFF == ord("q"):
+        #             break
 
-        await self.nats_client.close()  # Закрываем соединение с NATS
-        self.video_capture.release()
-        if self.show_video:
-            cv2.destroyAllWindows()
+        # await self.nats_client.close()  # Закрываем соединение с NATS
+        # self.video_capture.release()
+        # if self.show_video:
+        #     cv2.destroyAllWindows()
 
 
 def read_config(config_path):
