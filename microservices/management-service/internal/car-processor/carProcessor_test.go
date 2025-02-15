@@ -42,6 +42,10 @@ func (db *Database) AddEvent(secId models.SecurityCarIDType, eventTypeId int64) 
 	return nil
 }
 
+func (db *Database) GetAllSecuriedCarsByCamera(models.CameraIDType) ([]models.SecurityCar, error) {
+	return nil, nil
+}
+
 func initCP(nm INotificationManager, db IDatabase) *CarProcessor {
 	cfg := &Config{
 		InfoCount:          100,

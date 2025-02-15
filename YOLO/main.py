@@ -12,13 +12,12 @@ class YoloModel:
         self.model = YOLO(model_path).cuda()
 
     def detect_objects(self, frame):
-        return self.model(frame, conf=0.7)
+        return self.model.track(frame, conf=0.7, stream=True, persist=True)
 
 
 class VideoCapture:
     def __init__(self, video_path):
         self.cap = cv2.VideoCapture(video_path, cv2.CAP_FFMPEG)
-        self.cap.set(cv2.CAP_PROP_BUFFERSIZE, 1)
         if not self.cap.isOpened():
             raise Exception("Failed to open video stream")
 
@@ -61,12 +60,14 @@ class ObjectTrackingApp:
                 class_ids = result.boxes.cls.int().tolist()  # ID классов
                 names = result.names  # Имена классов
                 confidences = result.boxes.conf.tolist()  # Уверенность в детекции
+                track_ids = result.boxes.id.int().tolist()
 
-                for box_xyxyn, box_xywhn, class_id, confidence in zip(
-                    boxes_xyxyn, boxes_xywhn, class_ids, confidences
+                for box_xyxyn, box_xywhn, class_id, confidence, track_id in zip(
+                    boxes_xyxyn, boxes_xywhn, class_ids, confidences, track_ids
                 ):
                     frame_data["objects"].append(
                         {
+                            "id": track_id,
                             "class": names[class_id],
                             "bbox": box_xyxyn,
                             "confidence": confidence,

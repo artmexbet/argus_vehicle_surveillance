@@ -65,6 +65,10 @@ func (db *Database) GetAllSecuriedCarsByCamera(cameraID models.CameraIDType) ([]
 	return db.SecCars[cameraID], nil
 }
 
+func (db *Database) CheckHasUserTelegramId(models.AccountIDType) (bool, error) {
+	return true, nil
+}
+
 func (db *Database) SetCarToSecurity(
 	carID models.CarIDType,
 	cameraID models.CameraIDType,

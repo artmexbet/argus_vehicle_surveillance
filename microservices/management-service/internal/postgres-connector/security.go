@@ -54,36 +54,15 @@ func (p *PostgresConnector) SetCarToSecurity(
 
 // StopVehicleTracking stops tracking of the specified security car by secId
 func (p *PostgresConnector) StopVehicleTracking(secId models.SecurityCarIDType) error {
-	tx, err := p.conn.Begin(context.Background())
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(context.Background(),
+	_ = p.conn.QueryRow(context.Background(),
 		`UPDATE security_cars SET security_date_off = NOW() WHERE id = $1`, secId)
-	if err == nil {
-		tx.Commit(context.Background())
-	} else {
-		tx.Rollback(context.Background())
-	}
-	return err
+	return nil
 }
 
 // AddEvent adds an event of the specified type to the security car by secId
 func (p *PostgresConnector) AddEvent(secId models.SecurityCarIDType, eventTypeId int64) error {
-	tx, err := p.conn.Begin(context.Background())
-	if err != nil {
-		return err
-	}
-
-	_, err = tx.Exec(context.Background(),
+	_ = p.conn.QueryRow(context.Background(),
 		`INSERT INTO events (sc_id, et_id, time)
 					VALUES ($1, $2, NOW())`, secId, eventTypeId)
-
-	if err != nil {
-		tx.Commit(context.Background())
-	} else {
-		tx.Rollback(context.Background())
-	}
-	return err
+	return nil
 }
