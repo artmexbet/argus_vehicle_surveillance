@@ -81,6 +81,7 @@ async def nats_message_handler(msg):
     try:
         data = msg.data.decode()
         payload = json.loads(data)
+        print(f"Получено сообщение: {payload}")
 
         telegram_id = payload.get("telegram_id")
         msg = payload.get("text")

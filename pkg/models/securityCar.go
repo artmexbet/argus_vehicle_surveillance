@@ -19,3 +19,7 @@ func (scid *SecurityCarIDType) UnmarshalJSON(b []byte) error {
 func (scid *SecurityCarIDType) MarshalJSON() ([]byte, error) {
 	return json.Marshal(uuid.UUID(*scid).String())
 }
+
+type GetCarsRequest struct {
+	Login string `json:"login"`
+}

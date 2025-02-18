@@ -2,7 +2,6 @@ package main
 
 import (
 	carProcessor "Argus/microservices/management-service/internal/car-processor"
-	centrifugoConnector "Argus/microservices/management-service/internal/centrifugo-connector"
 	"Argus/microservices/management-service/internal/handler"
 	notificationsManager "Argus/microservices/management-service/internal/notifications-manager"
 	postgresConnector "Argus/microservices/management-service/internal/postgres-connector"
@@ -16,7 +15,6 @@ import (
 type Config struct {
 	NatsConfig         *natsConnector.Config        `yaml:"nats" env-prefix:"NATS_"`
 	DbConfig           *postgresConnector.Config    `yaml:"db" env-prefix:"DB_"`
-	CentrifugoConfig   *centrifugoConnector.Config  `yaml:"centrifugo" env-prefix:"CENTRIFUGO_"`
 	CarProcessorConfig *carProcessor.Config         `yaml:"car-processor" env-prefix:"CAR_PROCESSOR_"`
 	NotificationConfig *notificationsManager.Config `yaml:"notifications" env-prefix:"NOTIFICATIONS_"`
 }
@@ -50,9 +48,7 @@ func main() {
 	defer db.Close()
 	slog.Info("Postgres connector initialised")
 
-	//ws, err := centrifugoConnector.New(cfg.CentrifugoConfig)
-	//defer ws.Close()
-	ws := wsConnector.New(broker) // Временно заменил centrifugo на простой сокет
+	ws := wsConnector.New(broker)
 
 	nm := notificationsManager.New(cfg.NotificationConfig, broker, db)
 	cp := carProcessor.New(cfg.CarProcessorConfig, nm, db)

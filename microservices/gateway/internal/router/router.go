@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/recover"
 	"github.com/gofiber/swagger"
 	"github.com/nats-io/nats.go"
 )
@@ -35,9 +37,13 @@ func New(cfg *Config, broker IBroker) *Router {
 		broker:    broker,
 	}
 
+	app.Use(logger.New())
+	app.Use(recover.New())
+
 	router.app.Get("/swagger/*", swagger.HandlerDefault)
 
 	router.app.Post("/alarm", router.AlarmOn())
+	router.app.Get("/cars", router.GetCars)
 	return router
 }
 

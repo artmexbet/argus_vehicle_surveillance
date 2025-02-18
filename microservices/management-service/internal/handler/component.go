@@ -26,6 +26,7 @@ type IDatabase interface {
 	) (models.SecurityCarIDType, error)
 	GetAccountIdByLogin(string) (models.AccountIDType, error)
 	CheckHasUserTelegramId(models.AccountIDType) (bool, error)
+	GetCarsByUserLogin(string) ([]models.SecurityCar, error)
 }
 
 type ICarProcessor interface {
@@ -61,5 +62,7 @@ func (h *Handler) Init() error {
 	if err != nil {
 		return err
 	}
+
+	_, err = h.broker.CreateReader("get-cars", h.HandleGetCars())
 	return nil
 }

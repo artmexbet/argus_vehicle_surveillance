@@ -7,13 +7,11 @@ db:
   user: baseuser
   password: basepassword
   dbname: argus
-centrifugo:
-  host: centrifugo
-  port: 8000
 car-processor:
   info_count: 500
-  movement_check_delay: 5
-  lost_car_timeout: 60
+  movement_check_delay: 2
+  lost_car_timeout: 30
+  sensitivity: 0.04
 notifications:
   topic: security_car_notifications
 router:

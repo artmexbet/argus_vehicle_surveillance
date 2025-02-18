@@ -128,7 +128,6 @@ func (cp *CarProcessor) SetToSecurity(secCarID models.SecurityCarIDType) {
 				time.Sleep(time.Duration(cp.cfg.MovementCheckDelay) * time.Second)
 				continue
 			}
-			fmt.Println(secCarID)
 
 			// There we check if the car is lost for a long time, we should stop tracking it and send notifications.
 			if lostTime, ok := cp.lostCars[secCarID]; ok && time.Since(lostTime).Seconds() > float64(cp.cfg.LostCarTimeout) {
@@ -186,6 +185,9 @@ func (cp *CarProcessor) SetToSecurity(secCarID models.SecurityCarIDType) {
 			if locked {
 				cp.mu.RUnlock()
 			}
+			slog.Debug("distance",
+				slog.Any("dist", calculateEuclideanDistance(data[0].Bbox, data[len(data)-1].Bbox)),
+				slog.Any("security id", secCarID))
 			time.Sleep(time.Duration(cp.cfg.MovementCheckDelay) * time.Second)
 		}
 	}()

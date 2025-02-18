@@ -60,19 +60,22 @@ class ObjectTrackingApp:
                 class_ids = result.boxes.cls.int().tolist()  # ID классов
                 names = result.names  # Имена классов
                 confidences = result.boxes.conf.tolist()  # Уверенность в детекции
+                if result.boxes.id is None:
+                    continue
                 track_ids = result.boxes.id.int().tolist()
 
                 for box_xyxyn, box_xywhn, class_id, confidence, track_id in zip(
                     boxes_xyxyn, boxes_xywhn, class_ids, confidences, track_ids
                 ):
-                    frame_data["objects"].append(
-                        {
-                            "id": track_id,
-                            "class": names[class_id],
-                            "bbox": box_xyxyn,
-                            "confidence": confidence,
-                        }
-                    )
+                    if names[class_id] == "car":
+                        frame_data["objects"].append(
+                            {
+                                "id": track_id,
+                                "class": names[class_id],
+                                "bbox": box_xyxyn,
+                                "confidence": confidence,
+                            }
+                        )
 
             # Публикуем frame_data на NATS
             await self.nats_client.publish_frame_data(frame_data)

@@ -68,6 +68,8 @@ func (h *Handler) HandleAlarmOn() nats.MsgHandler {
 			return
 		}
 
+		h.carProcessor.SetToSecurity(id)
+
 		tmp := models.AlarmOnResponse{ID: id}
 		data, err := json.Marshal(&tmp)
 		if err != nil {
@@ -79,5 +81,41 @@ func (h *Handler) HandleAlarmOn() nats.MsgHandler {
 		}
 		resp, _ := json.Marshal(natsConnector.NewResponse(data, 201))
 		msg.Respond(resp)
+	}
+}
+
+func (h *Handler) HandleGetCars() nats.MsgHandler {
+	return func(msg *nats.Msg) {
+		var req models.GetCarsRequest
+		if err := json.Unmarshal(msg.Data, &req); err != nil {
+			slog.Error("Cant unmarshal data", err.Error())
+			err := msg.Respond([]byte(err.Error()))
+			if err != nil {
+				slog.Error(err.Error())
+				return
+			}
+		}
+
+		cars, err := h.db.GetCarsByUserLogin(req.Login)
+		if err != nil {
+			slog.Error("Cannot get cars by user login", slog.String("login", req.Login), slog.String("error", err.Error()))
+			bytes, _ := json.Marshal(natsConnector.NewResponse([]byte(err.Error()), 404))
+			_ = msg.Respond(bytes)
+			return
+		}
+
+		data, err := json.Marshal(cars)
+		if err != nil {
+			err := msg.Respond([]byte(err.Error()))
+			if err != nil {
+				slog.Error(err.Error())
+			}
+			return
+		}
+		resp, _ := json.Marshal(natsConnector.NewResponse(data, 200))
+		err = msg.Respond(resp)
+		if err != nil {
+			slog.Error(err.Error())
+		}
 	}
 }

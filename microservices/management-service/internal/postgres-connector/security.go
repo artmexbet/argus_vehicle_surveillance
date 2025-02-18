@@ -3,6 +3,7 @@ package postgres_connector
 import (
 	"Argus/pkg/models"
 	"context"
+	"log/slog"
 	"time"
 )
 
@@ -46,6 +47,7 @@ func (p *PostgresConnector) SetCarToSecurity(
 		carID, cameraID, accountID, time.Time(securityDateOn)).Scan(&securityCarID)
 	if err == nil {
 		tx.Commit(context.Background())
+		slog.Info("Car is set to security", slog.Any("securityCarID", securityCarID))
 	} else {
 		tx.Rollback(context.Background())
 	}
@@ -65,4 +67,27 @@ func (p *PostgresConnector) AddEvent(secId models.SecurityCarIDType, eventTypeId
 		`INSERT INTO events (sc_id, et_id, time)
 					VALUES ($1, $2, NOW())`, secId, eventTypeId)
 	return nil
+}
+
+func (p *PostgresConnector) GetCarsByUserLogin(login string) ([]models.SecurityCar, error) {
+	rows, err := p.conn.Query(context.Background(),
+		`SELECT sc.id, sc.camera_id, sc.car_id FROM security_cars sc
+							 JOIN accounts a ON sc.account_id = a.id
+							 WHERE a.login = $1 AND sc.security_date_off IS NULL;`, login)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	securityCars := make([]models.SecurityCar, 0)
+	for rows.Next() {
+		var securityCar models.SecurityCar
+		err = rows.Scan(&securityCar.ID, &securityCar.CameraID, &securityCar.CarID)
+		if err != nil {
+			return nil, err
+		}
+		securityCars = append(securityCars, securityCar)
+	}
+
+	return securityCars, nil
 }

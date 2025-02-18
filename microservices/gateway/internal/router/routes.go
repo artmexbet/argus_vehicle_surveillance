@@ -8,6 +8,8 @@ import (
 	"log/slog"
 )
 
+// AlarmOn ...
+//
 // @Summary Set car to security
 // @Description Set car to security
 // @ID alarm-on
@@ -42,4 +44,38 @@ func (r *Router) AlarmOn() fiber.Handler {
 		ctx.SendStatus(resp.HTTPCode)
 		return ctx.Send(resp.Data)
 	}
+}
+
+// GetCars ...
+//
+// @Summary Get cars
+// @Description Returns list of cars which is in security
+// @ID get-cars
+// @Accept json
+// @Produce json
+// @Param login formData string true "Login"
+// @Success 200 {array} models.SecurityCar
+// @Failure 500 {string} string "Cannot marshal request"
+// @Failure 500 {string} string "Cannot request message"
+// @Router /cars [get]
+func (r *Router) GetCars(ctx *fiber.Ctx) error {
+	login := ctx.FormValue("login")
+	req := &models.GetCarsRequest{Login: login}
+
+	b, err := json.Marshal(req)
+	if err != nil {
+		slog.Error("Cannot marshal request", err.Error())
+		return ctx.SendStatus(500)
+	}
+
+	request, err := r.broker.Request("get-cars", b)
+	if err != nil {
+		slog.Error("Cannot request message", err.Error())
+		return ctx.SendStatus(500)
+	}
+
+	var resp nats_connector.NetworkResponse
+	json.Unmarshal(request, &resp)
+	ctx.SendStatus(resp.HTTPCode)
+	return ctx.Send(resp.Data)
 }

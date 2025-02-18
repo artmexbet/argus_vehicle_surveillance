@@ -30,28 +30,30 @@ func (h *Handler) HandleCamera(cameraID models.CameraIDType) nats.MsgHandler {
 			return
 		}
 
-		// Process cars. Sort it to security cars lists
-		for _, secCar := range secCars {
-			isCarFound := false
-			for _, obj := range yoloJson.Objects {
-				if obj.Class == "car" || obj.Class == "truck" {
-					if secCar.CarID == models.CarIDType(obj.Id) {
-						h.carProcessor.AppendCarInfo(secCar.ID, models.CarInfo{
-							ID:         secCar.CarID,
-							Bbox:       obj.BBox,
-							IsCarFound: true,
-						})
-						isCarFound = true
-						break
+		go func() {
+			// Process cars. Sort it to security cars lists
+			for _, secCar := range secCars {
+				isCarFound := false
+				for _, obj := range yoloJson.Objects {
+					if obj.Class == "car" || obj.Class == "truck" {
+						if secCar.CarID == models.CarIDType(obj.Id) {
+							h.carProcessor.AppendCarInfo(secCar.ID, models.CarInfo{
+								ID:         secCar.CarID,
+								Bbox:       obj.BBox,
+								IsCarFound: true,
+							})
+							isCarFound = true
+							break
+						}
 					}
 				}
-			}
 
-			if !isCarFound {
-				h.carProcessor.AppendCarInfo(secCar.ID, models.CarInfo{
-					IsCarFound: false,
-				})
+				if !isCarFound {
+					h.carProcessor.AppendCarInfo(secCar.ID, models.CarInfo{
+						IsCarFound: false,
+					})
+				}
 			}
-		}
+		}()
 	}
 }
