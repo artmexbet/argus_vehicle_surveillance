@@ -119,3 +119,39 @@ func (h *Handler) HandleGetCars() nats.MsgHandler {
 		}
 	}
 }
+
+func (h *Handler) HandleAlarmOff() nats.MsgHandler {
+	return func(msg *nats.Msg) {
+		var alarmOffRequest models.AlarmOffRequest
+		if err := json.Unmarshal(msg.Data, &alarmOffRequest); err != nil {
+			slog.Error("Cant unmarshal data", err.Error())
+			err := msg.Respond([]byte(err.Error()))
+			if err != nil {
+				slog.Error(err.Error())
+				return
+			}
+		}
+
+		err := h.db.StopVehicleTracking(alarmOffRequest.ID)
+		if err != nil {
+			slog.Error("Cannot stop tracking", slog.Any("id", alarmOffRequest.ID), slog.String("error", err.Error()))
+			bytes, _ := json.Marshal(natsConnector.NewResponse([]byte(err.Error()), 500))
+			_ = msg.Respond(bytes)
+			return
+		}
+
+		err = h.carProcessor.StopSecurity(alarmOffRequest.ID)
+		if err != nil {
+			slog.Error("Cannot stop security", slog.Any("id", alarmOffRequest.ID), slog.String("error", err.Error()))
+			bytes, _ := json.Marshal(natsConnector.NewResponse([]byte(err.Error()), 500))
+			_ = msg.Respond(bytes)
+			return
+		}
+
+		resp, _ := json.Marshal(natsConnector.NewResponse([]byte("ok"), 200))
+		err = msg.Respond(resp)
+		if err != nil {
+			slog.Error(err.Error())
+		}
+	}
+}

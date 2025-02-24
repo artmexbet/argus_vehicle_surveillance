@@ -27,12 +27,14 @@ type IDatabase interface {
 	GetAccountIdByLogin(string) (models.AccountIDType, error)
 	CheckHasUserTelegramId(models.AccountIDType) (bool, error)
 	GetCarsByUserLogin(string) ([]models.SecurityCar, error)
+	StopVehicleTracking(models.SecurityCarIDType) error
 }
 
 type ICarProcessor interface {
 	AppendCarInfo(models.SecurityCarIDType, models.CarInfo)
 	GetCarInfos(models.SecurityCarIDType) []models.CarInfo
 	SetToSecurity(models.SecurityCarIDType)
+	StopSecurity(models.SecurityCarIDType) error
 }
 
 type Handler struct {
@@ -62,7 +64,11 @@ func (h *Handler) Init() error {
 	if err != nil {
 		return err
 	}
+	_, err = h.broker.CreateReader("alarm-off", h.HandleAlarmOff())
+	if err != nil {
+		return err
+	}
 
 	_, err = h.broker.CreateReader("get-cars", h.HandleGetCars())
-	return nil
+	return err
 }

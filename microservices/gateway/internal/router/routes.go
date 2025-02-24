@@ -79,3 +79,26 @@ func (r *Router) GetCars(ctx *fiber.Ctx) error {
 	ctx.SendStatus(resp.HTTPCode)
 	return ctx.Send(resp.Data)
 }
+
+func (r *Router) AlarmOff(ctx *fiber.Ctx) error {
+	req := new(models.AlarmOffRequest)
+	if err := json.Unmarshal(ctx.Body(), req); err != nil {
+		slog.Error("Cannot parse body", err.Error())
+		return ctx.SendStatus(400)
+	}
+
+	if err := r.validator.Struct(req); err != nil {
+		slog.Error("Struct is invalid", err.Error(), *req)
+		return ctx.SendStatus(400)
+	}
+
+	request, err := r.broker.Request("alarm-off", ctx.Body())
+	if err != nil {
+		slog.Error("Cannot request message", err.Error())
+		return ctx.SendStatus(500)
+	}
+	var resp nats_connector.NetworkResponse
+	json.Unmarshal(request, &resp)
+	ctx.SendStatus(resp.HTTPCode)
+	return ctx.Send(resp.Data)
+}
